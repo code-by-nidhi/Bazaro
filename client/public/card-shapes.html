@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero card shape picker</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 32px 24px 64px; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: #fff; color: #0f172a; }
+  h1 { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+  p.lead { margin: 0 0 32px; color: #475569; }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  figure { margin: 0; width: 237px; }
+  .card { position: relative; width: 237px; height: 400px; overflow: hidden; background: #8aac80; }
+  .card img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  figcaption { margin-top: 10px; font-size: 12px; }
+  figcaption b { display: block; font-size: 13px; font-weight: 800; }
+  figcaption span { color: #64748b; }
+
+  /* 1 */ .s1 { border-radius: 24px; }
+  /* 2 */ .s2 { border-radius: 48px 48px 12px 12px; }
+  /* 3 */ .s3 { border-radius: 32px 8px 32px 32px; }
+  /* 4 */ .s4 { border-radius: 8px 32px 32px 32px; }
+  /* 5 */ .s5 { border-radius: 40px; }
+  /* 6 */ .s6 { border-radius: 120px 120px 12px 12px; }
+  /* 7 */ .s7 { border-radius: 24px; border: 1px solid #e2e8f0; }
+  /* 8 */ .s8 { border-radius: 24px; box-shadow: 0 0 0 6px #fff, 0 0 0 7px #e2e8f0; }
+</style>
+</head>
+<body>
+  <h1>Hero card shape picker</h1>
+  <p class="lead">Same card, same image, real size (237 × 400). Tell Claude the number you want.</p>
+
+  <div class="row">
+    <figure>
+      <div class="card s1"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>1 — Uniform 24px</b><span>What the hero looked like before the arch change</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s2"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>2 — Arch top 48 / 12</b><span>What is in the code right now</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s3"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>3 — Notch top-right</b><span>32px except top-right 8px</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s4"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>4 — Notch top-left</b><span>32px except top-left 8px</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s5"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>5 — Uniform 40px</b><span>Softer version of 1</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s6"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>6 — Deep arch</b><span>120px top, nearly a dome</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s7"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>7 — Hairline outline</b><span>24px with a 1px grey stroke</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="card s8"><img src="/images/green-girl.png" alt=""></div>
+      <figcaption><b>8 — White inset frame</b><span>24px with a white gap then a grey stroke</span></figcaption>
+    </figure>
+  </div>
+</body>
+</html>
