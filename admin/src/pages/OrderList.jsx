@@ -5,6 +5,7 @@ import Pagination from '../components/common/Pagination';
 import { getAllOrdersAdminApi, updateOrderStatusAdminApi } from '../services/adminApi';
 import { formatCurrency, formatDate } from '../utils/currencyFormatter';
 import { CheckCircle, Truck, PackageCheck, XCircle } from 'lucide-react';
+import { showSuccess, showError, confirmAction, getErrorMessage } from '../utils/alerts';
 
 const ORDER_STATUSES = [
   'Pending',
@@ -33,7 +34,6 @@ const OrderList = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
-  const [msg, setMsg] = useState(null); // { type, text }
   const [updatingId, setUpdatingId] = useState(null);
 
   const fetchOrders = async () => {
@@ -46,7 +46,7 @@ const OrderList = () => {
         setTotalOrders(data.totalOrders || 0);
       }
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Failed to load orders.' });
+      showError('Could not load orders', getErrorMessage(error, 'Failed to load orders.'));
     } finally {
       setLoading(false);
     }
@@ -59,15 +59,14 @@ const OrderList = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     setUpdatingId(orderId);
-    setMsg(null);
     try {
       const res = await updateOrderStatusAdminApi(orderId, { orderStatus: newStatus });
       if (res.success) {
-        setMsg({ type: 'success', text: `Order #${orderId.slice(-8)} moved to '${newStatus}'.` });
+        showSuccess('Order updated', `Order #${orderId.slice(-8)} moved to '${newStatus}'.`);
         await fetchOrders();
       }
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Status update failed.' });
+      showError('Status update failed', getErrorMessage(error, 'Status update failed.'));
     } finally {
       setUpdatingId(null);
     }
@@ -115,8 +114,13 @@ const OrderList = () => {
         )}
         {canCancel && (
           <button
-            onClick={() => {
-              if (window.confirm('Cancel this order?')) handleStatusUpdate(ord._id, 'Cancelled');
+            onClick={async () => {
+              const confirmed = await confirmAction({
+                title: 'Cancel this order?',
+                text: `Order #${ord._id.slice(-8)} will be marked as cancelled.`,
+                confirmButtonText: 'Yes, cancel order',
+              });
+              if (confirmed) handleStatusUpdate(ord._id, 'Cancelled');
             }}
             disabled={updatingId === ord._id}
             className="px-2.5 py-1.5 text-red-600 hover:bg-red-50 border border-red-200 text-[11px] font-bold rounded-lg transition flex items-center gap-1 disabled:opacity-50"
@@ -169,18 +173,6 @@ const OrderList = () => {
             <strong className="text-slate-900">{totalOrders}</strong> order{totalOrders === 1 ? '' : 's'} total
           </span>
         </div>
-
-        {msg && (
-          <p
-            className={`p-3 border text-xs font-bold rounded-xl ${
-              msg.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-800'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}
-          >
-            {msg.text}
-          </p>
-        )}
 
         {loading ? (
           <div className="bg-white border border-slate-200 rounded-3xl shadow-xs">

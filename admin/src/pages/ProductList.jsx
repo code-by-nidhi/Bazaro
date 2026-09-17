@@ -6,6 +6,7 @@ import Pagination from '../components/common/Pagination';
 import { getProductsApi, deleteProductApi } from '../services/productApi';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
+import { showSuccess, showError, confirmAction, getErrorMessage } from '../utils/alerts';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -13,7 +14,6 @@ const ProductList = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [msg, setMsg] = useState('');
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -35,15 +35,20 @@ const ProductList = () => {
   }, [search, page]);
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete product '${name}'?`)) return;
+    const confirmed = await confirmAction({
+      title: `Delete product '${name}'?`,
+      text: 'This product will be removed from the store.',
+      confirmButtonText: 'Yes, delete it',
+    });
+    if (!confirmed) return;
     try {
       const res = await deleteProductApi(id);
       if (res.success) {
-        setMsg(`Product '${name}' deleted successfully!`);
+        showSuccess('Product deleted', `'${name}' has been removed.`);
         fetchProducts();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Failed to delete product.');
+      showError('Delete failed', getErrorMessage(error, 'Failed to delete product.'));
     }
   };
 
@@ -73,7 +78,6 @@ const ProductList = () => {
           </Link>
         </div>
 
-        {msg && <p className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold rounded-xl">{msg}</p>}
 
         <div className="bg-white border border-slate-200 rounded-3xl overflow-x-auto shadow-xs">
           {loading ? (

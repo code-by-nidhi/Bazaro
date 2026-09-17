@@ -9,6 +9,8 @@ import {
 } from '../services/categoryApi';
 import { CATEGORY_ICON_OPTIONS, getCategoryIcon, DEFAULT_CATEGORY_ICON } from '../constants/categories';
 import { Plus, Trash2, Pencil, Eye, EyeOff, Star, X } from 'lucide-react';
+import { validateFields, PATTERNS, HINTS } from '../utils/validators';
+import { showSuccess, showError, showValidationErrors, confirmAction, getErrorMessage } from '../utils/alerts';
 
 const emptyForm = {
   name: '',
@@ -24,7 +26,6 @@ const emptyForm = {
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState(null); // { type: 'success' | 'error', text }
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -37,7 +38,7 @@ const CategoryList = () => {
       const data = await getCategoriesApi();
       if (data.success) setCategories(data.categories || []);
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Failed to load categories.' });
+      showError('Could not load categories', getErrorMessage(error, 'Failed to load categories.'));
     } finally {
       setLoading(false);
     }
@@ -76,71 +77,83 @@ const CategoryList = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const subs = form.subInput.split(',').map((s) => s.trim()).filter(Boolean);
+    const errors = validateFields([
+      { label: 'Category name', value: form.name, rule: 'categoryName', required: true },
+      { label: 'Description', value: form.description, rule: 'shortText' },
+      { label: 'Image URL', value: form.imageUrl, rule: 'url' },
+      { label: 'Navbar position', value: form.displayOrder, rule: 'displayOrder' },
+    ]);
+    const badSub = subs.find((sub) => !PATTERNS.categoryName.test(sub));
+    if (badSub) errors.push(`Subcategory '${badSub}' ${HINTS.categoryName}`);
+    if (errors.length) return showValidationErrors(errors);
+
     setSaving(true);
-    setMsg(null);
     try {
-      const subs = form.subInput.split(',').map((s) => s.trim()).filter(Boolean);
       const data = new FormData();
-      data.append('name', form.name);
-      data.append('description', form.description);
+      data.append('name', form.name.trim());
+      data.append('description', form.description.trim());
       data.append('subcategories', JSON.stringify(subs));
       data.append('icon', form.icon);
       data.append('showInNavbar', String(form.showInNavbar));
       data.append('featured', String(form.featured));
       data.append('displayOrder', String(Number(form.displayOrder) || 0));
-      if (form.imageUrl) data.append('imageUrl', form.imageUrl);
+      if (form.imageUrl.trim()) data.append('imageUrl', form.imageUrl.trim());
 
       const res = editingId
         ? await updateCategoryApi(editingId, data)
         : await createCategoryApi(data);
 
       if (res.success) {
-        setMsg({
-          type: 'success',
-          text: editingId
-            ? `Category '${form.name}' updated. The storefront navbar is up to date.`
-            : `Category '${form.name}' created and added to the storefront navbar.`,
-        });
+        showSuccess(
+          editingId ? 'Category updated!' : 'Category created!',
+          editingId
+            ? `'${form.name.trim()}' updated. The storefront navbar is up to date.`
+            : `'${form.name.trim()}' created and added to the storefront navbar.`
+        );
         closeModal();
         await fetchCats();
       }
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Failed to save category.' });
+      showError('Could not save category', getErrorMessage(error, 'Failed to save category.'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id, catName) => {
-    if (!window.confirm(`Delete category '${catName}'? This cannot be undone.`)) return;
-    setMsg(null);
+    const confirmed = await confirmAction({
+      title: `Delete category '${catName}'?`,
+      text: 'This cannot be undone.',
+      confirmButtonText: 'Yes, delete it',
+    });
+    if (!confirmed) return;
     try {
       const res = await deleteCategoryApi(id);
       if (res.success) {
-        setMsg({ type: 'success', text: `Category '${catName}' deleted.` });
+        showSuccess('Category deleted', `'${catName}' has been removed.`);
         await fetchCats();
       }
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Delete failed.' });
+      showError('Delete failed', getErrorMessage(error, 'Delete failed.'));
     }
   };
 
   // Toggle navbar visibility straight from the card without opening the form.
   const handleToggleNavbar = async (cat) => {
-    setMsg(null);
     try {
       const data = new FormData();
       data.append('showInNavbar', String(!(cat.showInNavbar !== false)));
       const res = await updateCategoryApi(cat._id, data);
       if (res.success) {
-        setMsg({
-          type: 'success',
-          text: `'${cat.name}' is now ${res.category.showInNavbar ? 'visible in' : 'hidden from'} the navbar.`,
-        });
+        showSuccess(
+          'Navbar updated',
+          `'${cat.name}' is now ${res.category.showInNavbar ? 'visible in' : 'hidden from'} the navbar.`
+        );
         await fetchCats();
       }
     } catch (error) {
-      setMsg({ type: 'error', text: error.response?.data?.message || 'Update failed.' });
+      showError('Update failed', getErrorMessage(error, 'Update failed.'));
     }
   };
 
@@ -160,21 +173,10 @@ const CategoryList = () => {
           </button>
         </div>
 
-        {msg && (
-          <p
-            className={`p-3 border text-xs font-bold rounded-xl ${
-              msg.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-800'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}
-          >
-            {msg.text}
-          </p>
-        )}
-
         {/* Create / Edit Form */}
         {showModal && (
           <form
+            noValidate
             onSubmit={handleSubmit}
             className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 text-xs font-semibold max-w-2xl"
           >
@@ -255,6 +257,7 @@ const CategoryList = () => {
                 <input
                   type="number"
                   min="0"
+                  max="999"
                   value={form.displayOrder}
                   onChange={(e) => setField('displayOrder', e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500"

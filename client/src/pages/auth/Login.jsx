@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../hooks/useAuth';
-import { LogIn, AlertCircle, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { LogIn, AlertCircle, ShoppingBag } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 
 const Login = () => {
   const { login } = useAuth();
@@ -12,22 +14,27 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
 
   const redirectMessage = location.state?.message;
   const redirectPath = location.state?.from || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Email address', value: email, rule: 'email', required: true },
+      { label: 'Password', value: password, required: true },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     setLoading(true);
-    setErrorMsg('');
     try {
-      const data = await login(email, password);
+      const data = await login(email.trim(), password);
       if (data.success) {
+        showSuccess('Welcome back!', data.message || 'Logged in successfully.');
         navigate(redirectPath, { replace: true });
       }
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || 'Login failed. Invalid email or password.');
+      showError('Login failed', getErrorMessage(error, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }
@@ -53,13 +60,7 @@ const Login = () => {
             </div>
           )}
 
-          {errorMsg && (
-            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold">
-              {errorMsg}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
             <div>
               <label className="block text-slate-700 mb-1">Email Address</label>
               <input

@@ -10,6 +10,8 @@ import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../utils/currencyFormatter';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 import {
   ShoppingBag,
   Heart,
@@ -49,7 +51,6 @@ const ProductDetails = () => {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [reviewMsg, setReviewMsg] = useState('');
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -114,21 +115,26 @@ const ProductDetails = () => {
       navigate('/login', { state: { from: `/product/${slug}`, message: 'Please login to post a review.' } });
       return;
     }
+    const errors = validateFields([
+      { label: 'Rating', value: newRating, rule: 'rating', required: true },
+      { label: 'Comment', value: newComment, rule: 'reviewComment', required: true },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     setReviewSubmitting(true);
-    setReviewMsg('');
     try {
       const data = await addReviewApi({
         productId: product._id,
         rating: newRating,
-        comment: newComment,
+        comment: newComment.trim(),
       });
       if (data.success) {
-        setReviewMsg('Thank you! Review submitted successfully.');
+        showSuccess('Thank you!', data.message || 'Your review has been submitted.');
         setReviews([data.review, ...reviews]);
         setNewComment('');
       }
     } catch (error) {
-      setReviewMsg(error.response?.data?.message || 'Failed to submit review.');
+      showError('Review not submitted', getErrorMessage(error, 'Failed to submit review.'));
     } finally {
       setReviewSubmitting(false);
     }
@@ -413,9 +419,8 @@ const ProductDetails = () => {
                 {/* Submit Review Box */}
                 <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl max-w-xl space-y-4">
                   <h4 className="text-sm font-bold text-slate-900">Write a Customer Review</h4>
-                  {reviewMsg && <p className="text-xs font-bold text-indigo-600">{reviewMsg}</p>}
 
-                  <form onSubmit={handleReviewSubmit} className="space-y-3">
+                  <form noValidate onSubmit={handleReviewSubmit} className="space-y-3">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">Your Rating</label>
                       <div className="flex gap-1 text-amber-400 cursor-pointer">
@@ -435,7 +440,8 @@ const ProductDetails = () => {
                       <textarea
                         required
                         rows="3"
-                        placeholder="Write your honest thoughts about this product..."
+                        maxLength={500}
+                        placeholder="Write your honest thoughts about this product (10-500 characters)..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs"

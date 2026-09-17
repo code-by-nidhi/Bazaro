@@ -6,6 +6,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { createOrderApi, createRazorpayOrderApi, verifyRazorpayPaymentApi } from '../../services/orderApi';
 import { ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { getAddressErrors } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 
 const Checkout = () => {
   const { cartItems, subtotal, discountAmount, taxPrice, shippingPrice, totalAmount, appliedCoupon, clearCart } = useCart();
@@ -28,7 +30,6 @@ const Checkout = () => {
   // Payment Method Selection
   const [paymentMethod, setPaymentMethod] = useState('Razorpay'); // 'Razorpay' or 'COD'
   const [processing, setProcessing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const activeShippingAddress = showAddressForm
     ? newAddress
@@ -36,22 +37,24 @@ const Checkout = () => {
 
   const handleSaveNewAddress = async (e) => {
     e.preventDefault();
+    const errors = getAddressErrors(newAddress);
+    if (errors.length) return showValidationErrors(errors);
+
     try {
-      await saveAddress(newAddress);
+      const data = await saveAddress(newAddress);
+      showSuccess('Address saved!', data?.message || 'You can now place your order.');
       setShowAddressForm(false);
+      if (data?.addresses?.length) setSelectedAddressIdx(data.addresses.length - 1);
     } catch (error) {
-      console.warn('[Save Address Warning]:', error.message);
+      showError('Could not save address', getErrorMessage(error, 'Failed to save address.'));
     }
   };
 
   const handlePlaceOrder = async () => {
-    if (!activeShippingAddress.addressLine || !activeShippingAddress.pincode) {
-      setErrorMessage('Please select or provide a valid shipping address.');
-      return;
-    }
+    const addressErrors = getAddressErrors(activeShippingAddress);
+    if (addressErrors.length) return showValidationErrors(['Please select or provide a valid shipping address.', ...addressErrors]);
 
     setProcessing(true);
-    setErrorMessage('');
 
     try {
       const orderPayload = {
@@ -71,6 +74,7 @@ const Checkout = () => {
         const data = await createOrderApi(orderPayload);
         if (data.success && data.order) {
           clearCart();
+          showSuccess('Order placed!', data.message || 'Your cash on delivery order is confirmed.');
           navigate('/payment-success', { state: { order: data.order } });
         }
       } else {
@@ -98,11 +102,13 @@ const Checkout = () => {
 
               if (verifyRes.success) {
                 clearCart();
+                showSuccess('Payment successful!', 'Your order has been placed.');
                 navigate('/payment-success', { state: { order: verifyRes.order } });
               }
             } catch (err) {
-              setErrorMessage(err.response?.data?.message || 'Payment verification failed.');
-              navigate('/payment-failed', { state: { error: err.message } });
+              const message = getErrorMessage(err, 'Payment verification failed.');
+              showError('Payment verification failed', message);
+              navigate('/payment-failed', { state: { error: message } });
             }
           },
           prefill: {
@@ -119,6 +125,7 @@ const Checkout = () => {
         if (window.Razorpay) {
           const rzp = new window.Razorpay(options);
           rzp.on('payment.failed', function (response) {
+            showError('Payment failed', response.error?.description || 'Your payment could not be completed.');
             navigate('/payment-failed', { state: { error: response.error.description } });
           });
           rzp.open();
@@ -132,12 +139,13 @@ const Checkout = () => {
           });
           if (verifyRes.success) {
             clearCart();
+            showSuccess('Payment successful!', 'Your order has been placed.');
             navigate('/payment-success', { state: { order: verifyRes.order } });
           }
         }
       }
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || error.message || 'Checkout failed.');
+      showError('Checkout failed', getErrorMessage(error, 'Checkout failed.'));
     } finally {
       setProcessing(false);
     }
@@ -155,12 +163,6 @@ const Checkout = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {errorMessage && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-bold mb-6">
-            {errorMessage}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Checkout Steps Column */}
           <div className="lg:col-span-2 space-y-6">
@@ -228,7 +230,7 @@ const Checkout = () => {
 
               {/* Add New Address Form */}
               {showAddressForm && (
-                <form onSubmit={handleSaveNewAddress} className="space-y-3 text-xs font-semibold pt-2">
+                <form noValidate onSubmit={handleSaveNewAddress} className="space-y-3 text-xs font-semibold pt-2">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-slate-700 mb-1">Full Name *</label>
@@ -245,6 +247,7 @@ const Checkout = () => {
                       <input
                         type="tel"
                         required
+                        maxLength={14}
                         value={newAddress.phone}
                         onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
@@ -290,6 +293,8 @@ const Checkout = () => {
                       <input
                         type="text"
                         required
+                        inputMode="numeric"
+                        maxLength={6}
                         value={newAddress.pincode}
                         onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"

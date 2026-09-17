@@ -3,12 +3,13 @@ import AdminLayout from '../components/layout/AdminLayout';
 import Loader from '../components/common/Loader';
 import { getAllCouponsApi, createCouponApi, deleteCouponApi } from '../services/couponApi';
 import { formatDate } from '../utils/currencyFormatter';
-import { Plus, Trash2, Tag } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
+import { validateFields } from '../utils/validators';
+import { showSuccess, showError, showValidationErrors, confirmAction, getErrorMessage } from '../utils/alerts';
 
 const CouponList = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState('');
   const [showModal, setShowModal] = useState(false);
 
   const [code, setCode] = useState('');
@@ -34,9 +35,25 @@ const CouponList = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Coupon code', value: code, rule: 'couponCode', required: true },
+      { label: 'Discount type', value: discountType, rule: 'discountType', required: true },
+      { label: 'Discount value', value: discountValue, rule: 'price', required: true },
+      { label: 'Minimum purchase', value: minimumPurchase, rule: 'price' },
+      { label: 'Expiry date', value: expiryDate, rule: 'date', required: true },
+    ]);
+    if (discountValue !== '' && Number(discountValue) <= 0) errors.push('Discount value must be greater than 0.');
+    if (discountType === 'percentage' && Number(discountValue) > 100) {
+      errors.push('Percentage discount cannot be more than 100%.');
+    }
+    if (expiryDate && expiryDate < new Date().toISOString().slice(0, 10)) {
+      errors.push('Expiry date cannot be in the past.');
+    }
+    if (errors.length) return showValidationErrors(errors);
+
     try {
       const res = await createCouponApi({
-        code,
+        code: code.trim(),
         discountType,
         discountValue: Number(discountValue),
         minimumPurchase: minimumPurchase ? Number(minimumPurchase) : 0,
@@ -44,27 +61,34 @@ const CouponList = () => {
       });
 
       if (res.success) {
-        setMsg(`Coupon '${code}' created!`);
+        showSuccess('Coupon created!', `Coupon '${code.trim()}' is now active.`);
         setShowModal(false);
         setCode('');
         setDiscountValue('');
+        setMinimumPurchase('');
+        setExpiryDate('');
         fetchCoupons();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Failed to create coupon.');
+      showError('Could not create coupon', getErrorMessage(error, 'Failed to create coupon.'));
     }
   };
 
   const handleDelete = async (id, couponCode) => {
-    if (!window.confirm(`Delete coupon '${couponCode}'?`)) return;
+    const confirmed = await confirmAction({
+      title: `Delete coupon '${couponCode}'?`,
+      text: 'Customers will no longer be able to use this code.',
+      confirmButtonText: 'Yes, delete it',
+    });
+    if (!confirmed) return;
     try {
       const res = await deleteCouponApi(id);
       if (res.success) {
-        setMsg(`Coupon '${couponCode}' deleted.`);
+        showSuccess('Coupon deleted', `Coupon '${couponCode}' has been removed.`);
         fetchCoupons();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Delete failed.');
+      showError('Delete failed', getErrorMessage(error, 'Delete failed.'));
     }
   };
 
@@ -81,15 +105,13 @@ const CouponList = () => {
           </button>
         </div>
 
-        {msg && <p className="p-3 bg-indigo-50 text-indigo-800 text-xs font-bold rounded-xl">{msg}</p>}
-
         {showModal && (
-          <form onSubmit={handleCreate} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-4 text-xs font-semibold max-w-md">
+          <form noValidate onSubmit={handleCreate} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-4 text-xs font-semibold max-w-md">
             <h3 className="text-base font-bold text-slate-900 font-heading">Add Promo Code</h3>
 
             <div>
               <label className="block text-slate-700 mb-1">Coupon Code *</label>
-              <input required type="text" placeholder="e.g. BAZARO20" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl uppercase" />
+              <input required type="text" placeholder="e.g. BAZARO20" maxLength={15} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl uppercase" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

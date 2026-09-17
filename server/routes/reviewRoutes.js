@@ -6,9 +6,10 @@ const {
   deleteReview,
 } = require('../controllers/reviewController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { reviewRules } = require('../middleware/validateMiddleware');
 
 router.get('/product/:productId', getProductReviews);
-router.post('/', protect, addReview);
+router.post('/', protect, reviewRules, addReview);
 router.delete('/:id', protect, adminOnly, deleteReview);
 
 module.exports = router;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '../components/layout/AdminLayout';
 import RatingStars from '../components/common/RatingStars';
 import { Star, Trash2 } from 'lucide-react';
+import { showSuccess, confirmAction } from '../utils/alerts';
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([
@@ -23,8 +24,11 @@ const ReviewList = () => {
     },
   ]);
 
-  const handleDelete = (id) => {
-    setReviews(reviews.filter((r) => r._id !== id));
+  const handleDelete = async (id) => {
+    const confirmed = await confirmAction({ title: 'Delete this review?', confirmButtonText: 'Yes, delete it' });
+    if (!confirmed) return;
+    setReviews((prev) => prev.filter((r) => r._id !== id));
+    showSuccess('Review deleted');
   };
 
   return (

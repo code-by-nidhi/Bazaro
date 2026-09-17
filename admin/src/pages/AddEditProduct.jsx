@@ -4,7 +4,9 @@ import AdminLayout from '../components/layout/AdminLayout';
 import Loader from '../components/common/Loader';
 import { createProductApi, updateProductApi, getProductByIdApi } from '../services/productApi';
 import { getCategoriesApi } from '../services/categoryApi';
-import { Save, Upload, Plus, Trash2 } from 'lucide-react';
+import { Save } from 'lucide-react';
+import { validateFields, validateCommaList } from '../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../utils/alerts';
 
 const AddEditProduct = () => {
   const { id } = useParams();
@@ -14,7 +16,6 @@ const AddEditProduct = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -109,20 +110,44 @@ const AddEditProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Product title', value: formData.name, rule: 'productName', required: true },
+      { label: 'Brand name', value: formData.brand, rule: 'brand', required: true },
+      { label: 'Category', value: formData.category, required: true },
+      { label: 'Subcategory', value: formData.subcategory, required: true },
+      { label: 'Short description', value: formData.shortDescription, rule: 'shortText' },
+      { label: 'Description', value: formData.description, rule: 'description', required: true },
+      { label: 'Original price', value: formData.price, rule: 'price', required: true },
+      { label: 'Discount price', value: formData.discountPrice, rule: 'price' },
+      { label: 'Stock count', value: formData.stock, rule: 'integer', required: true },
+      { label: 'SKU code', value: formData.sku, rule: 'sku', required: true },
+      { label: 'Image URL', value: formData.imageUrl, rule: 'url' },
+    ]);
+    if (formData.price !== '' && Number(formData.price) <= 0) errors.push('Original price must be greater than 0.');
+    if (formData.discountPrice !== '' && Number(formData.discountPrice) >= Number(formData.price)) {
+      errors.push('Discount price must be lower than the original price.');
+    }
+    errors.push(
+      ...validateCommaList('Sizes', sizesInput),
+      ...validateCommaList('Colors', colorsInput),
+      ...validateCommaList('Weights', weightsInput)
+    );
+    if (errors.length) return showValidationErrors(errors);
+
     setSubmitting(true);
-    setMsg('');
 
     try {
       const data = new FormData();
       Object.keys(formData).forEach((key) => {
-        data.append(key, formData[key]);
+        const value = formData[key];
+        data.append(key, typeof value === 'string' ? value.trim() : value);
       });
 
       // Append variants
       const variantsObj = {
-        sizes: sizesInput ? sizesInput.split(',').map((s) => s.trim()) : [],
-        colors: colorsInput ? colorsInput.split(',').map((c) => c.trim()) : [],
-        weights: weightsInput ? weightsInput.split(',').map((w) => w.trim()) : [],
+        sizes: sizesInput.split(',').map((s) => s.trim()).filter(Boolean),
+        colors: colorsInput.split(',').map((c) => c.trim()).filter(Boolean),
+        weights: weightsInput.split(',').map((w) => w.trim()).filter(Boolean),
       };
       data.append('variants', JSON.stringify(variantsObj));
       data.append('specifications', JSON.stringify(specList.filter((s) => s.title && s.value)));
@@ -142,11 +167,11 @@ const AddEditProduct = () => {
       }
 
       if (res.success) {
-        setMsg(`Product ${isEdit ? 'updated' : 'created'} successfully!`);
-        setTimeout(() => navigate('/products'), 1000);
+        showSuccess(`Product ${isEdit ? 'updated' : 'created'}!`, `'${formData.name.trim()}' was saved successfully.`);
+        navigate('/products');
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Operation failed.');
+      showError(`Could not ${isEdit ? 'update' : 'create'} product`, getErrorMessage(error, 'Operation failed.'));
     } finally {
       setSubmitting(false);
     }
@@ -158,9 +183,7 @@ const AddEditProduct = () => {
 
   return (
     <AdminLayout title={isEdit ? 'Edit Product' : 'Add New Product'}>
-      <form onSubmit={handleSubmit} className="max-w-4xl space-y-8 text-xs font-semibold">
-        {msg && <p className="p-4 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-2xl font-bold">{msg}</p>}
-
+      <form noValidate onSubmit={handleSubmit} className="max-w-4xl space-y-8 text-xs font-semibold">
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 font-heading">Basic Product Information</h3>
 
@@ -225,7 +248,7 @@ const AddEditProduct = () => {
             </div>
             <div>
               <label className="block text-slate-700 mb-1">SKU Code *</label>
-              <input required type="text" name="sku" value={formData.sku} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl uppercase" />
+              <input required type="text" name="sku" value={formData.sku} onChange={(e) => setFormData((prev) => ({ ...prev, sku: e.target.value.toUpperCase() }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl uppercase" />
             </div>
           </div>
         </div>

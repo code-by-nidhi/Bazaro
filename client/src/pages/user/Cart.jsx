@@ -5,6 +5,8 @@ import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag, ShieldCheck } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors } from '../../utils/alerts';
 
 const Cart = () => {
   const {
@@ -17,7 +19,6 @@ const Cart = () => {
     shippingPrice,
     totalAmount,
     appliedCoupon,
-    couponError,
     applyCoupon,
     removeCoupon,
   } = useCart();
@@ -30,10 +31,18 @@ const Cart = () => {
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault();
-    if (!couponCodeInput) return;
+    const errors = validateFields([{ label: 'Coupon code', value: couponCodeInput, rule: 'couponCode', required: true }]);
+    if (errors.length) return showValidationErrors(errors);
+
     setApplying(true);
-    await applyCoupon(couponCodeInput);
+    const result = await applyCoupon(couponCodeInput.trim());
     setApplying(false);
+    if (result?.success) {
+      showSuccess('Coupon applied!', result.message || `${couponCodeInput.trim()} has been applied to your cart.`);
+      setCouponCodeInput('');
+    } else {
+      showError('Coupon not applied', result?.message || 'Invalid or expired coupon code.');
+    }
   };
 
   const handleProceedToCheckout = () => {
@@ -150,10 +159,11 @@ const Cart = () => {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <form noValidate onSubmit={handleApplyCoupon} className="flex gap-2">
                     <input
                       type="text"
                       placeholder="e.g. BAZARO20"
+                      maxLength={15}
                       value={couponCodeInput}
                       onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
                       className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs uppercase"
@@ -167,7 +177,6 @@ const Cart = () => {
                     </button>
                   </form>
                 )}
-                {couponError && <p className="text-[11px] font-bold text-red-600">{couponError}</p>}
               </div>
 
               {/* Calculation Table */}

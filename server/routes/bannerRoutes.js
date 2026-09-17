@@ -6,10 +6,11 @@ const {
   deleteBanner,
 } = require('../controllers/bannerController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { createBannerRules } = require('../middleware/validateMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
 router.get('/', getActiveBanners);
-router.post('/', protect, adminOnly, upload.single('image'), createBanner);
+router.post('/', protect, adminOnly, upload.single('image'), createBannerRules, createBanner);
 router.delete('/:id', protect, adminOnly, deleteBanner);
 
 module.exports = router;

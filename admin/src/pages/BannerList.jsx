@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/layout/AdminLayout';
 import Loader from '../components/common/Loader';
 import { getActiveBannersApi, createBannerApi, deleteBannerApi } from '../services/adminApi';
-import { Plus, Trash2, Image } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
+import { validateFields } from '../utils/validators';
+import { showSuccess, showError, showValidationErrors, confirmAction, getErrorMessage } from '../utils/alerts';
 
 const BannerList = () => {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState('');
   const [showModal, setShowModal] = useState(false);
 
   const [title, setTitle] = useState('');
@@ -32,36 +33,50 @@ const BannerList = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Banner title', value: title, rule: 'bannerTitle', required: true },
+      { label: 'Subtitle', value: subtitle, rule: 'shortText' },
+      { label: 'Target link', value: link, rule: 'linkPath' },
+      { label: 'Background image URL', value: imageUrl, rule: 'url', required: true },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     try {
       const data = new FormData();
-      data.append('title', title);
-      data.append('subtitle', subtitle);
-      data.append('link', link);
-      if (imageUrl) data.append('imageUrl', imageUrl);
+      data.append('title', title.trim());
+      data.append('subtitle', subtitle.trim());
+      data.append('link', link.trim());
+      data.append('imageUrl', imageUrl.trim());
 
       const res = await createBannerApi(data);
       if (res.success) {
-        setMsg(`Banner '${title}' created!`);
+        showSuccess('Banner created!', `'${title.trim()}' is now live on the homepage.`);
         setShowModal(false);
         setTitle('');
         setSubtitle('');
+        setImageUrl('');
         fetchBanners();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Failed to create banner.');
+      showError('Could not create banner', getErrorMessage(error, 'Failed to create banner.'));
     }
   };
 
   const handleDelete = async (id, bannerTitle) => {
-    if (!window.confirm(`Delete banner '${bannerTitle}'?`)) return;
+    const confirmed = await confirmAction({
+      title: `Delete banner '${bannerTitle}'?`,
+      text: 'It will be removed from the homepage slider.',
+      confirmButtonText: 'Yes, delete it',
+    });
+    if (!confirmed) return;
     try {
       const res = await deleteBannerApi(id);
       if (res.success) {
-        setMsg(`Banner '${bannerTitle}' deleted.`);
+        showSuccess('Banner deleted', `'${bannerTitle}' has been removed.`);
         fetchBanners();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Delete failed.');
+      showError('Delete failed', getErrorMessage(error, 'Delete failed.'));
     }
   };
 
@@ -78,10 +93,8 @@ const BannerList = () => {
           </button>
         </div>
 
-        {msg && <p className="p-3 bg-indigo-50 text-indigo-800 text-xs font-bold rounded-xl">{msg}</p>}
-
         {showModal && (
-          <form onSubmit={handleCreate} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-4 text-xs font-semibold max-w-lg">
+          <form noValidate onSubmit={handleCreate} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-4 text-xs font-semibold max-w-lg">
             <h3 className="text-base font-bold text-slate-900 font-heading">Add Hero Slide Banner</h3>
 
             <div>

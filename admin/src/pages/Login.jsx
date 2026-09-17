@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShieldCheck, LogIn, Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ShieldCheck, LogIn, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { validateFields } from '../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../utils/alerts';
 import { STOREFRONT_URL } from '../config/urls';
 
 const Login = () => {
@@ -13,24 +15,29 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
 
   // Send the admin back to whatever page bounced them here.
   const redirectTo = location.state?.from || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Admin email', value: email, rule: 'email', required: true },
+      { label: 'Password', value: password, required: true },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     setLoading(true);
-    setErrorMsg('');
     try {
-      const data = await login(email, password);
+      const data = await login(email.trim(), password);
       if (data.success) {
+        showSuccess('Welcome back!', 'Signed in to the admin portal.');
         navigate(redirectTo, { replace: true });
       } else {
-        setErrorMsg(data.message);
+        showError('Access denied', data.message || 'Invalid admin credentials.');
       }
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || 'Invalid admin credentials.');
+      showError('Login failed', getErrorMessage(error, 'Invalid admin credentials.'));
     } finally {
       setLoading(false);
     }
@@ -52,14 +59,7 @@ const Login = () => {
           <p className="text-xs text-slate-400">Restricted area — administrator sign in</p>
         </div>
 
-        {errorMsg && (
-          <div className="p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl text-xs font-semibold flex items-start gap-2">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
+        <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
           <div>
             <label htmlFor="admin-email" className="block text-slate-300 mb-1.5">
               Admin Email

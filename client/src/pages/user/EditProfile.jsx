@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../hooks/useAuth';
-import { User, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 
 const EditProfile = () => {
   const { user, updateProfile } = useAuth();
@@ -12,23 +14,28 @@ const EditProfile = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Full name', value: name, rule: 'personName', required: true },
+      { label: 'Phone number', value: phone, rule: 'phone' },
+      { label: 'New password', value: password, rule: 'password' },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     setLoading(true);
-    setMsg('');
     try {
-      const payload = { name, phone };
+      const payload = { name: name.trim(), phone: phone.trim() };
       if (password) payload.password = password;
 
       const data = await updateProfile(payload);
       if (data.success) {
-        setMsg('Profile updated successfully!');
-        setTimeout(() => navigate('/profile'), 1000);
+        showSuccess('Profile updated!', data.message || 'Your changes have been saved.');
+        navigate('/profile');
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Failed to update profile.');
+      showError('Update failed', getErrorMessage(error, 'Failed to update profile.'));
     } finally {
       setLoading(false);
     }
@@ -40,9 +47,7 @@ const EditProfile = () => {
         <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl space-y-6">
           <h2 className="text-xl font-bold text-slate-900 font-heading">Edit Profile Details</h2>
 
-          {msg && <p className="text-xs font-bold text-indigo-600 bg-indigo-50 p-3 rounded-xl">{msg}</p>}
-
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
             <div>
               <label className="block text-slate-700 mb-1">Full Name</label>
               <input
@@ -58,6 +63,8 @@ const EditProfile = () => {
               <label className="block text-slate-700 mb-1">Phone Number</label>
               <input
                 type="tel"
+                maxLength={14}
+                placeholder="+91 9876543210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900"

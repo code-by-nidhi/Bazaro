@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import { KeyRound } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showValidationErrors } from '../../utils/alerts';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -9,7 +11,11 @@ const ForgotPassword = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errors = validateFields([{ label: 'Email address', value: email, rule: 'email', required: true }]);
+    if (errors.length) return showValidationErrors(errors);
+
     setSubmitted(true);
+    showSuccess('Check your inbox', `Password reset instructions sent to ${email.trim()}.`);
   };
 
   return (
@@ -30,7 +36,7 @@ const ForgotPassword = () => {
               <Link to="/login" className="inline-block text-indigo-600 underline text-xs">Return to Login</Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
               <div>
                 <label className="block text-slate-700 mb-1">Email Address</label>
                 <input

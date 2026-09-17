@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { UserPlus, ShoppingBag } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 
 const Register = () => {
   const { register } = useAuth();
@@ -17,7 +19,6 @@ const Register = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,19 +26,32 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMsg('Passwords do not match.');
-      return;
+    const errors = validateFields([
+      { label: 'Full name', value: formData.name, rule: 'personName', required: true },
+      { label: 'Email address', value: formData.email, rule: 'email', required: true },
+      { label: 'Phone number', value: formData.phone, rule: 'phone' },
+      { label: 'Password', value: formData.password, rule: 'password', required: true },
+      { label: 'Confirm password', value: formData.confirmPassword, required: true },
+    ]);
+    if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
+      errors.push('Passwords do not match.');
     }
+    if (errors.length) return showValidationErrors(errors);
+
     setLoading(true);
-    setErrorMsg('');
     try {
-      const data = await register(formData);
+      const data = await register({
+        ...formData,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+      });
       if (data.success) {
+        showSuccess('Account created!', data.message || 'Welcome to Bazaro.');
         navigate('/');
       }
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || 'Registration failed.');
+      showError('Registration failed', getErrorMessage(error, 'Could not create your account.'));
     } finally {
       setLoading(false);
     }
@@ -55,13 +69,7 @@ const Register = () => {
             <p className="text-xs text-slate-500">Join thousands of happy shoppers across India.</p>
           </div>
 
-          {errorMsg && (
-            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold">
-              {errorMsg}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
             <div>
               <label className="block text-slate-700 mb-1">Full Name *</label>
               <input
@@ -94,6 +102,7 @@ const Register = () => {
                 type="tel"
                 name="phone"
                 placeholder="+91 9876543210"
+                maxLength={14}
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
@@ -102,6 +111,7 @@ const Register = () => {
 
             <div>
               <label className="block text-slate-700 mb-1">Password *</label>
+              <p className="text-[10px] font-medium text-slate-400 mb-1">8-32 characters with uppercase, lowercase, number and special character.</p>
               <input
                 type="password"
                 required

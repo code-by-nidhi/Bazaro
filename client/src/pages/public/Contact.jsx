@@ -1,13 +1,26 @@
 import React, { useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showValidationErrors } from '../../utils/alerts';
 
 const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errors = validateFields([
+      { label: 'Full name', value: form.name, rule: 'personName', required: true },
+      { label: 'Email address', value: form.email, rule: 'email', required: true },
+      { label: 'Message', value: form.message, rule: 'message', required: true },
+    ]);
+    if (errors.length) return showValidationErrors(errors);
+
     setSubmitted(true);
+    showSuccess('Message sent!', 'We will reply within 2 hours.');
   };
 
   return (
@@ -58,20 +71,20 @@ const Contact = () => {
               ✅ Thank you! Message sent successfully. We will reply within 2 hours.
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Full Name</label>
-                <input required type="text" placeholder="John Doe" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <input required type="text" name="name" value={form.name} onChange={handleChange} placeholder="John Doe" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Email Address</label>
-                <input required type="email" placeholder="john@example.com" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <input required type="email" name="email" value={form.email} onChange={handleChange} placeholder="john@example.com" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Message</label>
-                <textarea required rows="4" placeholder="How can we help you?" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <textarea required rows="4" name="message" maxLength={1000} value={form.message} onChange={handleChange} placeholder="How can we help you?" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
 
               <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition flex items-center justify-center gap-2">

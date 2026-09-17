@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../hooks/useAuth';
-import { MapPin, Plus, Save } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
+import { getAddressErrors } from '../../utils/validators';
+import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../../utils/alerts';
 
 const AddressManagement = () => {
   const { user, saveAddress } = useAuth();
@@ -19,8 +21,12 @@ const AddressManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = getAddressErrors(addressData);
+    if (errors.length) return showValidationErrors(errors);
+
     try {
-      await saveAddress(addressData);
+      const data = await saveAddress(addressData);
+      showSuccess('Address saved!', data?.message || 'Your delivery address has been added.');
       setShowForm(false);
       setAddressData({
         fullName: user?.name || '',
@@ -33,7 +39,7 @@ const AddressManagement = () => {
         isDefault: false,
       });
     } catch (error) {
-      console.warn('[Save Address Error]:', error.message);
+      showError('Could not save address', getErrorMessage(error, 'Failed to save address.'));
     }
   };
 
@@ -56,7 +62,7 @@ const AddressManagement = () => {
 
       <div className="container mx-auto px-4 py-12 max-w-4xl space-y-6">
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4 text-xs font-semibold">
+          <form noValidate onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4 text-xs font-semibold">
             <h3 className="text-base font-bold text-slate-900">Add New Delivery Address</h3>
 
             <div className="grid grid-cols-2 gap-3">
@@ -66,7 +72,7 @@ const AddressManagement = () => {
               </div>
               <div>
                 <label className="block text-slate-700 mb-1">Phone Number *</label>
-                <input required type="tel" value={addressData.phone} onChange={(e) => setAddressData({ ...addressData, phone: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <input required type="tel" maxLength={14} value={addressData.phone} onChange={(e) => setAddressData({ ...addressData, phone: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
             </div>
 
@@ -86,7 +92,7 @@ const AddressManagement = () => {
               </div>
               <div>
                 <label className="block text-slate-700 mb-1">Pincode *</label>
-                <input required type="text" value={addressData.pincode} onChange={(e) => setAddressData({ ...addressData, pincode: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <input required type="text" inputMode="numeric" maxLength={6} value={addressData.pincode} onChange={(e) => setAddressData({ ...addressData, pincode: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
             </div>
 

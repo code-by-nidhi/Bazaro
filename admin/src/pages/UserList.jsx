@@ -4,11 +4,11 @@ import Loader from '../components/common/Loader';
 import { getAllUsersAdminApi, toggleUserStatusAdminApi } from '../services/adminApi';
 import { formatDate } from '../utils/currencyFormatter';
 import { UserCheck, UserX, Shield } from 'lucide-react';
+import { showSuccess, showError, getErrorMessage } from '../utils/alerts';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState('');
 
   const fetchUsers = async () => {
     try {
@@ -29,19 +29,17 @@ const UserList = () => {
     try {
       const res = await toggleUserStatusAdminApi(id);
       if (res.success) {
-        setMsg(res.message);
+        showSuccess('User updated', res.message || `'${userName}' status changed.`);
         fetchUsers();
       }
     } catch (error) {
-      setMsg(error.response?.data?.message || 'Status toggle failed.');
+      showError('Status toggle failed', getErrorMessage(error, 'Status toggle failed.'));
     }
   };
 
   return (
     <AdminLayout title="Customer & User Management">
       <div className="space-y-6">
-        {msg && <p className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold rounded-xl">{msg}</p>}
-
         <div className="bg-white border border-slate-200 rounded-3xl overflow-x-auto shadow-xs">
           {loading ? (
             <Loader text="Loading user database..." />

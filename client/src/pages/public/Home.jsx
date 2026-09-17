@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import MainLayout from '../../components/layout/MainLayout';
 import ProductGrid from '../../components/product/ProductGrid';
+import { validateFields } from '../../utils/validators';
+import { showSuccess, showValidationErrors } from '../../utils/alerts';
 import { getFeaturedSectionsApi } from '../../services/productApi';
 import { getActiveBannersApi } from '../../services/bannerApi';
 import { getCategoryIcon } from '../../constants/categories';
@@ -60,10 +62,12 @@ const Home = () => {
 
   const handleNewsletter = (e) => {
     e.preventDefault();
-    if (newsletterEmail) {
-      setNewsletterSubscribed(true);
-      setNewsletterEmail('');
-    }
+    const errors = validateFields([{ label: 'Email address', value: newsletterEmail, rule: 'email', required: true }]);
+    if (errors.length) return showValidationErrors(errors);
+
+    setNewsletterSubscribed(true);
+    setNewsletterEmail('');
+    showSuccess('Subscribed!', 'Check your inbox soon for exclusive deals.');
   };
 
   return (
@@ -392,7 +396,7 @@ const Home = () => {
               🎉 Thank you for subscribing! Check your inbox soon for exclusive deals.
             </div>
           ) : (
-            <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <form noValidate onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
               <input
                 type="email"
                 required
