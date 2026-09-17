@@ -22,8 +22,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // CORS Configuration
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:5174',
+  process.env.ADMIN_URL || 'http://localhost:5174',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  // Render deployments
+  'https://bazaro-website-ecom-2026.onrender.com',
+  'https://bazaro-admin-ecom-2026.onrender.com',
 ];
 
 app.use(

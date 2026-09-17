@@ -14,9 +14,8 @@ import {
   ArrowLeft,
   X,
 } from 'lucide-react';
-
 // The storefront is a separate app on its own origin.
-const STOREFRONT_URL = import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:5173';
+import { STOREFRONT_URL } from '../../config/urls';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },

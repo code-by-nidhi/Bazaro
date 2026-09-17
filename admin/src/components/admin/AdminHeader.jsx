@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { ExternalLink, Menu, ChevronDown, LogOut, ShieldCheck } from 'lucide-react';
-
 // The storefront is a separate app on its own origin.
-const STOREFRONT_URL = import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:5173';
+import { STOREFRONT_URL } from '../../config/urls';
 
 const AdminHeader = ({ title = 'Dashboard Overview', onOpenSidebar = () => {} }) => {
   const { user, logout } = useAuth();

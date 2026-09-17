@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from '../config/urls';
 
 // The admin panel keeps its session under its own localStorage keys so it never
 // collides with a storefront session, even if both are served from one domain.
@@ -6,7 +7,7 @@ export const ADMIN_TOKEN_KEY = 'bazaro_admin_token';
 export const ADMIN_USER_KEY = 'bazaro_admin_user';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

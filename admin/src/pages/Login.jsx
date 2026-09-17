@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldCheck, LogIn, Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { STOREFRONT_URL } from '../config/urls';
 
 const Login = () => {
   const { login } = useAuth();
@@ -120,7 +121,7 @@ const Login = () => {
           <br />
           Looking for the shop?{' '}
           <a
-            href={import.meta.env.VITE_STOREFRONT_URL || 'http://localhost:5173'}
+            href={STOREFRONT_URL}
             className="text-indigo-400 hover:text-indigo-300 font-semibold underline"
           >
             Go to the storefront

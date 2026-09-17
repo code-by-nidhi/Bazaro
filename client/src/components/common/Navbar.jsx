@@ -20,9 +20,8 @@ import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { useProducts } from '../../hooks/useProducts';
 import { getCategoryIcon } from '../../constants/categories';
-
 // The admin panel is a separate app on its own origin.
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
+import { ADMIN_URL } from '../../config/urls';
 
 // Primary navigation. "Categories" sits between these two groups and is rendered
 // separately as a dropdown fed by the admin-managed category list.
