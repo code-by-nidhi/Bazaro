@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { useProducts } from '../../hooks/useProducts';
 import {
-  ShoppingBag,
   Mail,
   Phone,
   MapPin,
@@ -70,13 +70,8 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-5 gap-8">
         {/* Brand Overview */}
         <div className="md:col-span-2 space-y-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">
-              <ShoppingBag size={20} />
-            </div>
-            <span className="text-2xl font-black text-white font-heading">
-              BAZARO<span className="text-indigo-500">.</span>
-            </span>
+          <Link to="/" aria-label="Bazaro home" className="inline-flex">
+            <BrandLogo size="md" tone="light" />
           </Link>
           <p className="text-xs leading-relaxed text-slate-400 pr-6">
             Bazaro is India's dedicated clothing destination — tailored menswear, everyday womenswear, kids' essentials, handcrafted ethnic wear, winter layers and activewear, delivered nationwide.

@@ -20,6 +20,7 @@ import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { useProducts } from '../../hooks/useProducts';
 import { getCategoryIcon } from '../../constants/categories';
+import BrandLogo from './BrandLogo';
 // The admin panel is a separate app on its own origin.
 import { ADMIN_URL } from '../../config/urls';
 
@@ -167,9 +168,13 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
 
-              <Link to="/" className="text-xl sm:text-2xl font-extrabold tracking-tight font-heading">
-                <span className="text-slate-900">Bazaro</span>
-                <span className="text-orange-500">.</span>
+              <Link to="/" aria-label="Bazaro home" className="flex items-center">
+                <span className="sm:hidden">
+                  <BrandLogo size="sm" tagline={null} />
+                </span>
+                <span className="hidden sm:inline-flex">
+                  <BrandLogo size="md" />
+                </span>
               </Link>
             </div>
 
