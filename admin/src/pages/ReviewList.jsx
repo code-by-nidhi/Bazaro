@@ -36,7 +36,8 @@ const ReviewList = () => {
       <div className="space-y-6">
         <p className="text-xs text-slate-500">Moderate customer ratings and review comments.</p>
 
-        <div className="bg-white border border-slate-200 rounded-3xl overflow-x-auto shadow-xs">
+        {/* Table view — tablet & desktop */}
+        <div className="hidden md:block bg-white border border-slate-200 rounded-3xl overflow-x-auto shadow-xs">
           <table className="w-full min-w-[760px] text-xs text-left border-collapse">
             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-200">
               <tr>
@@ -65,6 +66,25 @@ const ReviewList = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Card view — phones */}
+        <div className="md:hidden space-y-3">
+          {reviews.map((rev) => (
+            <div key={rev._id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs text-xs space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">{rev.user?.name}</p>
+                  <p className="text-[11px] text-slate-500 truncate">{rev.product?.name}</p>
+                </div>
+                <button onClick={() => handleDelete(rev._id)} aria-label="Delete review" className="p-2 -mr-2 -mt-1 text-red-600 hover:bg-red-50 rounded-lg shrink-0">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <RatingStars rating={rev.rating} showNumber={false} size={14} />
+              <p className="text-slate-600 leading-relaxed">{rev.comment}</p>
+            </div>
+          ))}
         </div>
       </div>
     </AdminLayout>

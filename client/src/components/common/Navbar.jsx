@@ -53,7 +53,9 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
+  const headerRef = useRef(null);
   const userRef = useRef(null);
   const categoriesRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -89,6 +91,31 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
     if (searchOpen && searchInputRef.current) searchInputRef.current.focus();
   }, [searchOpen]);
 
+  // While the mobile drawer is open: lock the page behind it, keep the drawer
+  // pinned right under the header, and close it if the screen grows to desktop.
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
+    const header = headerRef.current;
+    const measure = () => setHeaderHeight(header.getBoundingClientRect().bottom);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const handleDesktop = (e) => e.matches && setMobileMenuOpen(false);
+    desktop.addEventListener('change', handleDesktop);
+
+    return () => {
+      document.body.style.overflow = overflow;
+      observer.disconnect();
+      desktop.removeEventListener('change', handleDesktop);
+    };
+  }, [mobileMenuOpen]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -120,7 +147,7 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
     ) : null;
 
   return (
-    <header className="sticky top-0 z-40 bg-white">
+    <header ref={headerRef} className="sticky top-0 z-40 bg-white">
       {/* ---------- Announcement Bar ---------- */}
       <div className="bg-slate-950 text-slate-200">
         <div className="container mx-auto max-w-7xl px-4">
@@ -392,7 +419,10 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
 
       {/* ---------- Mobile Drawer ---------- */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 shadow-lg px-4 py-4 space-y-4 max-h-[calc(100vh-7.5rem)] overflow-y-auto">
+        <div
+          style={{ top: headerHeight }}
+          className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white px-4 py-4 space-y-4 overflow-y-auto overscroll-contain"
+        >
           <div className="space-y-0.5">
             {NAV_LINKS_BEFORE.map((link) => (
               <Link
@@ -408,6 +438,7 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
             ))}
           </div>
 
+          {navCategories.length > 0 && (
           <div className="space-y-0.5 pt-3 border-t border-slate-100">
             <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1">
               Categories
@@ -430,6 +461,7 @@ const Navbar = ({ onOpenCart, onOpenFlashDeal }) => {
               );
             })}
           </div>
+          )}
 
           <div className="space-y-0.5 pt-3 border-t border-slate-100">
             {[

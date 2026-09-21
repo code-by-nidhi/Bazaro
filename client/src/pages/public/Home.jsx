@@ -159,7 +159,7 @@ const Home = () => {
             </div>
 
             {/* Column 2: Full-Height Card */}
-            <Link to="/shop" className="block relative h-[300px] sm:h-[340px] lg:h-[400px] lg:mt-8 rounded-t-[28px] rounded-b-xl lg:rounded-t-[48px] overflow-hidden bg-[#8aac80] group shadow-xs">
+            <Link to="/shop" className="block relative h-[336px] sm:h-[340px] lg:h-[400px] lg:mt-8 rounded-t-[28px] rounded-b-xl lg:rounded-t-[48px] overflow-hidden bg-[#8aac80] group shadow-xs">
               <img
                 src="/images/green-girl.png"
                 alt="Green double-breasted coat with matching wide-leg trousers"

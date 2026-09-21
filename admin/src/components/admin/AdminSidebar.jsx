@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import BrandLogo from '../common/BrandLogo';
 import {
   LayoutDashboard,
   Package,
@@ -10,7 +11,6 @@ import {
   Image,
   Star,
   Settings,
-  ShoppingBasket,
   ArrowLeft,
   X,
 } from 'lucide-react';
@@ -36,18 +36,8 @@ const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
     <>
       {/* Admin Brand Header */}
       <div className="p-5 lg:p-6 border-b border-slate-800 flex items-center justify-between gap-2">
-        <Link to="/" className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-            <ShoppingBasket size={18} />
-          </div>
-          <div className="min-w-0">
-            <span className="text-lg font-black text-white tracking-tight font-heading block leading-tight">
-              BAZARO<span className="text-indigo-500">.</span>
-            </span>
-            <span className="block text-[9px] uppercase tracking-widest font-extrabold text-indigo-400 -mt-0.5">
-              Admin Portal
-            </span>
-          </div>
+        <Link to="/" aria-label="Bazaro admin dashboard" className="flex items-center min-w-0">
+          <BrandLogo size="sm" tone="light" tagline="Admin Portal" />
         </Link>
 
         {/* Close button, drawer only */}

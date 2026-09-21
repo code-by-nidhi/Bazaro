@@ -68,9 +68,9 @@ const Dashboard = () => {
 
   return (
     <AdminLayout title="Executive Overview">
-      <div className="space-y-8">
+      <div className="space-y-5 sm:space-y-8">
         {/* Metric Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Total Revenue"
             value={formatCurrency(stats.totalRevenue)}
@@ -102,9 +102,9 @@ const Dashboard = () => {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
           {/* Revenue & Sales Trend Chart */}
-          <div className="lg:col-span-2 bg-white p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
+          <div className="lg:col-span-2 bg-white p-4 sm:p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900 font-heading">Revenue Growth Overview</h3>
@@ -115,7 +115,7 @@ const Dashboard = () => {
               </span>
             </div>
 
-            <div className="h-72 w-full pt-4">
+            <div className="h-60 sm:h-72 w-full pt-4 -ml-3 sm:ml-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlySales}>
                   <defs>
@@ -138,7 +138,7 @@ const Dashboard = () => {
           </div>
 
           {/* Category Distribution Chart */}
-          <div className="bg-white p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="bg-white p-4 sm:p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4 flex flex-col justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-900 font-heading">Category Distribution</h3>
               <p className="text-xs text-slate-400">Inventory share across categories</p>
@@ -177,14 +177,14 @@ const Dashboard = () => {
         </div>
 
         {/* Low Stock Alerts & Recent Orders */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
           {/* Low Stock Alert Table */}
-          <div className="bg-white p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white p-4 sm:p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
+            <div className="flex items-start sm:items-center justify-between gap-3">
               <h3 className="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
-                <AlertTriangle className="text-amber-500" size={18} /> Low Stock Warnings (&lt;= 5 left)
+                <AlertTriangle className="text-amber-500 shrink-0" size={18} /> Low Stock Warnings (&lt;= 5 left)
               </h3>
-              <Link to="/products" className="text-xs font-bold text-indigo-600 hover:underline">
+              <Link to="/products" className="text-xs font-bold text-indigo-600 hover:underline whitespace-nowrap pt-1 sm:pt-0">
                 View Products
               </Link>
             </div>
@@ -194,15 +194,15 @@ const Dashboard = () => {
                 <p className="text-xs text-slate-500">All products have healthy inventory levels.</p>
               ) : (
                 data?.lowStockList?.map((prod) => (
-                  <div key={prod._id} className="flex items-center justify-between p-3 bg-amber-50/50 border border-amber-100 rounded-2xl text-xs">
-                    <div className="flex items-center gap-3">
-                      <img src={prod.images?.[0]?.url} alt={prod.name} className="w-10 h-10 object-cover rounded-xl bg-white" />
-                      <div>
-                        <p className="font-bold text-slate-900 truncate max-w-[180px]">{prod.name}</p>
-                        <p className="text-slate-400 text-[10px]">{prod.sku}</p>
+                  <div key={prod._id} className="flex items-center justify-between gap-3 p-3 bg-amber-50/50 border border-amber-100 rounded-2xl text-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img src={prod.images?.[0]?.url} alt={prod.name} className="w-10 h-10 object-cover rounded-xl bg-white shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 truncate">{prod.name}</p>
+                        <p className="text-slate-400 text-[10px] truncate">{prod.sku}</p>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-xs">
+                    <span className="px-2.5 py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-xs whitespace-nowrap shrink-0">
                       {prod.stock} Left
                     </span>
                   </div>
@@ -212,27 +212,30 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Orders */}
-          <div className="bg-white p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white p-4 sm:p-6 border border-slate-200 rounded-3xl shadow-xs space-y-4">
+            <div className="flex items-center justify-between gap-3">
               <h3 className="text-base font-bold text-slate-900 font-heading">Recent Store Orders</h3>
-              <Link to="/orders" className="text-xs font-bold text-indigo-600 hover:underline">
+              <Link to="/orders" className="text-xs font-bold text-indigo-600 hover:underline whitespace-nowrap">
                 Manage Orders
               </Link>
             </div>
 
             <div className="space-y-2">
               {data?.recentOrders?.map((ord) => (
-                <div key={ord._id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs">
-                  <div>
+                <div key={ord._id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs">
+                  <div className="min-w-0">
                     <span className="font-bold text-slate-900">#{ord._id.slice(-6)}</span>
-                    <span className="block text-[11px] text-slate-400">{ord.user?.name || 'Customer'}</span>
+                    <span className="block text-[11px] text-slate-400 truncate">{ord.user?.name || 'Customer'}</span>
                   </div>
-                  <span className="font-extrabold text-slate-900">{formatCurrency(ord.totalAmount)}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    ord.orderStatus === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {ord.orderStatus}
-                  </span>
+                  {/* Amount and status stack on narrow phones */}
+                  <div className="flex flex-col min-[400px]:flex-row items-end min-[400px]:items-center gap-1 min-[400px]:gap-4 shrink-0">
+                    <span className="font-extrabold text-slate-900">{formatCurrency(ord.totalAmount)}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold whitespace-nowrap ${
+                      ord.orderStatus === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {ord.orderStatus}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

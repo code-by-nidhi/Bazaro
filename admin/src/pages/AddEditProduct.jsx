@@ -183,8 +183,8 @@ const AddEditProduct = () => {
 
   return (
     <AdminLayout title={isEdit ? 'Edit Product' : 'Add New Product'}>
-      <form noValidate onSubmit={handleSubmit} className="max-w-4xl space-y-8 text-xs font-semibold">
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+      <form noValidate onSubmit={handleSubmit} className="max-w-4xl space-y-4 sm:space-y-8 text-xs font-semibold">
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 font-heading">Basic Product Information</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -231,9 +231,9 @@ const AddEditProduct = () => {
         </div>
 
         {/* Pricing & Stock */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 font-heading">Pricing & Inventory</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-slate-700 mb-1">Original Price (₹) *</label>
               <input required type="number" name="price" value={formData.price} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" />
@@ -254,11 +254,11 @@ const AddEditProduct = () => {
         </div>
 
         {/* Media Upload */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 font-heading">Media & Images</h3>
           <div>
             <label className="block text-slate-700 mb-1">Upload Product Image Files (Cloudinary)</label>
-            <input type="file" multiple onChange={(e) => setImagesFiles(e.target.files)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+            <input type="file" multiple onChange={(e) => setImagesFiles(e.target.files)} className="w-full min-w-0 p-2 bg-slate-50 border border-slate-200 rounded-xl file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-bold" />
           </div>
           <div>
             <label className="block text-slate-700 mb-1">Or Web Image URL (Fallback)</label>
@@ -267,7 +267,7 @@ const AddEditProduct = () => {
         </div>
 
         {/* Variants & Specifications */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 font-heading">Variants & Specifications</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -287,7 +287,7 @@ const AddEditProduct = () => {
 
         {/* Submit */}
         <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-2xl shadow-lg transition flex items-center gap-2">
+          <button type="submit" disabled={submitting} className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
             <Save size={18} /> {submitting ? 'Saving...' : 'Save Product Record'}
           </button>
         </div>

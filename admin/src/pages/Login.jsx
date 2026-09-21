@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShieldCheck, LogIn, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import BrandLogo from '../components/common/BrandLogo';
 import { validateFields } from '../utils/validators';
 import { showSuccess, showError, showValidationErrors, getErrorMessage } from '../utils/alerts';
 import { STOREFRONT_URL } from '../config/urls';
@@ -49,12 +50,10 @@ const Login = () => {
       <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[36rem] max-w-full h-64 bg-indigo-600/20 blur-3xl rounded-full" />
 
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 bg-indigo-600/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto border border-indigo-500/30">
-            <ShieldCheck size={30} />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black font-heading tracking-tight">
-            BAZARO ADMIN PORTAL
+        <div className="text-center space-y-3">
+          <h1 className="flex justify-center">
+            <span className="sr-only">Bazaro Admin Portal</span>
+            <BrandLogo size="md" tone="light" tagline="Admin Portal" />
           </h1>
           <p className="text-xs text-slate-400">Restricted area — administrator sign in</p>
         </div>

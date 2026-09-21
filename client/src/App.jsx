@@ -11,8 +11,7 @@ import Contact from './pages/public/Contact';
 import FAQ from './pages/public/FAQ';
 import NotFound from './pages/public/NotFound';
 
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import AuthPage from './pages/auth/AuthPage';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
 import Profile from './pages/user/Profile';
@@ -27,9 +26,12 @@ import PaymentSuccess from './pages/user/PaymentSuccess';
 import PaymentFailed from './pages/user/PaymentFailed';
 
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ScrollManager from './components/common/ScrollManager';
 
 function App() {
   return (
+    <>
+    <ScrollManager />
     <Routes>
       {/* Public Pages */}
       <Route path="/" element={<Home />} />
@@ -42,8 +44,8 @@ function App() {
       <Route path="/faq" element={<FAQ />} />
 
       {/* Auth Pages */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/register" element={<AuthPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* User Protected Pages */}
@@ -61,6 +63,7 @@ function App() {
       {/* 404 Page */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }
 

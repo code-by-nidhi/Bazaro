@@ -167,7 +167,7 @@ const CategoryList = () => {
           </p>
           <button
             onClick={openCreate}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shrink-0"
+            className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shrink-0"
           >
             <Plus size={16} /> Create Category
           </button>
